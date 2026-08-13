@@ -97,13 +97,23 @@ export default function Counter({ onComplete, isDisabled = false }) {
                 outline: 'none',
               }}
             />
-            <span style={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: 'var(--color-text-secondary)',
-            }}>
-              {unit}
-            </span>
+            <input
+              type="text"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder="単位"
+              style={{
+                width: '4rem',
+                fontSize: '1rem',
+                fontWeight: 600,
+                color: 'var(--color-text-secondary)',
+                background: 'transparent',
+                border: 'none',
+                borderBottom: '1px dashed var(--color-glass-border)',
+                outline: 'none',
+                textAlign: 'left',
+              }}
+            />
           </div>
         </div>
 

@@ -26,6 +26,7 @@ export default function Dashboard() {
 
   const handleTabChange = (tab) => {
     navigate(tab === 'canvas' ? '/' : `/${tab}`);
+    setSidebarOpen(false);
   };
 
   return (
@@ -63,6 +64,7 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside
+        className={`sidebar ${sidebarOpen ? 'open' : ''}`}
         style={{
           width: '60px',
           background: 'var(--color-bg-primary)',
@@ -74,12 +76,9 @@ export default function Dashboard() {
           gap: '0.5rem',
           position: 'fixed',
           top: 0,
-          left: sidebarOpen ? 0 : undefined,
           bottom: 0,
           zIndex: 1000,
-          transition: 'left var(--transition-base)',
         }}
-        className="sidebar"
       >
         {/* Logo */}
         <div style={{
@@ -303,9 +302,16 @@ export default function Dashboard() {
 
       {showSettings && <ProfileSettingsModal onClose={() => setShowSettings(false)} />}
       <style>{`
+        .sidebar {
+          left: 0;
+          transition: transform 0.3s ease;
+        }
         @media (max-width: 1024px) {
           .sidebar {
-            display: none !important;
+            transform: translateX(-100%);
+          }
+          .sidebar.open {
+            transform: translateX(0);
           }
           .mobile-menu-btn {
             display: flex !important;
