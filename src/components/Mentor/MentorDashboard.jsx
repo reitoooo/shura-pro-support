@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, getDocs, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Users, Flame, Target, ChevronRight, Search } from 'lucide-react';
-import { getCurrentHeatLevel, formatDuration } from '../../utils/heatPointCalculator';
-import AdminMemberManager from './AdminMemberManager';
+import { Users, Flame, Target, ChevronRight, Search, BookOpen } from 'lucide-react';
+import { getCurrentHeatLevel } from '../../utils/heatPointCalculator';
 
-export default function AdminDashboard() {
+export default function MentorDashboard() {
   const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +42,6 @@ export default function AdminDashboard() {
     
     return team.includes(term) || tags.some(t => t.includes(term));
   });
-  const handleMemberUpdate = (updatedMember) => {
-    // Update local state directly
-    setMembers(prev => prev.map(m => m.id === updatedMember.id ? updatedMember : m));
-  };
 
   if (loading) {
     return (
@@ -60,9 +55,9 @@ export default function AdminDashboard() {
     <div style={{ padding: '2rem', height: '100%', overflowY: 'auto' }}>
       <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <Users size={24} color="var(--color-primary)" />
+          <BookOpen size={24} color="var(--color-success)" />
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--color-text-primary)' }}>
-            運営ダッシュボード
+            メンターダッシュボード
           </h1>
         </div>
 
@@ -80,10 +75,6 @@ export default function AdminDashboard() {
             />
           </div>
         </div>
-      </div>
-
-      <div style={{ marginBottom: '2rem' }}>
-        <AdminMemberManager />
       </div>
 
       <div style={{
@@ -153,11 +144,11 @@ export default function AdminDashboard() {
                     </td>
                     <td style={{ padding: '1rem 1.5rem' }}>
                       <button 
-                        onClick={() => navigate(`/members/${member.id}`, { state: { member, source: 'admin' } })}
+                        onClick={() => navigate(`/members/${member.id}`, { state: { member, source: 'mentor' } })}
                         className="btn-ghost"
-                        style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                        style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', color: 'var(--color-success)', borderColor: 'rgba(34, 197, 94, 0.3)' }}
                       >
-                        詳細を見る <ChevronRight size={16} />
+                        レビューする <ChevronRight size={16} />
                       </button>
                     </td>
                   </tr>

@@ -1,20 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Activity, Target, LayoutDashboard, User, Edit2, Save, X } from 'lucide-react';
 import ShuraCanvasPanel from '../ShuraCanvas/ShuraCanvasPanel';
 import HeatPointPanel from '../HeatPoint/HeatPointPanel';
 import ObjectiveKPIPanel from '../ObjectiveKPI/ObjectiveKPIPanel';
 import { AppContext, AppDispatchContext } from '../../context/AppContext';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-export default function AdminMemberDetail({ member, onBack, onUpdate }) {
+export default function AdminMemberDetail() {
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Try to get member from router state, otherwise start as null and fetch
+  const [member, setMember] = useState(location.state?.member || null);
+  const [loading, setLoading] = useState(!member);
+
   const [activeTab, setActiveTab] = useState('canvas');
   
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
-  const [team, setTeam] = useState(member.profile?.team || '');
-  const [tagsText, setTagsText] = useState((member.profile?.tags || []).join(', '));
+  const [team, setTeam] = useState(member?.profile?.team || '');
+  const [tagsText, setTagsText] = useState((member?.profile?.tags || []).join(', '));
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    // If we already have the member from state, we can skip fetching
+    if (member) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchMember = async () => {
+      try {
+        const userRef = doc(db, 'users', id);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+          const data = { id: docSnap.id, ...docSnap.data() };
+          setMember(data);
+          setTeam(data.profile?.team || '');
+          setTagsText((data.profile?.tags || []).join(', '));
+        } else {
+          console.error("No such member!");
+        }
+      } catch (error) {
+        console.error("Error fetching member details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMember();
+  }, [id, member]);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--color-text-muted)' }}>
+        メンバーデータを読み込み中...
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '1rem' }}>
+        <div style={{ color: 'var(--color-text-muted)' }}>メンバーが見つかりませんでした。</div>
+        <button className="btn-ghost" onClick={() => navigate('/admin')}>運営ダッシュボードに戻る</button>
+      </div>
+    );
+  }
 
   // Create a read-only mock dispatch that does nothing
   const mockDispatch = () => {
@@ -57,10 +112,8 @@ export default function AdminMemberDetail({ member, onBack, onUpdate }) {
       console.warn("Firestore update failed (likely a mock user):", error);
     }
     
-    // Always trigger the local update callback
-    if (onUpdate) {
-      onUpdate(updatedMember);
-    }
+    // Update local member state instead of relying on callback
+    setMember(updatedMember);
     
     setIsSaving(false);
     setIsEditing(false);
@@ -87,7 +140,7 @@ export default function AdminMemberDetail({ member, onBack, onUpdate }) {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               <button
-                onClick={onBack}
+                onClick={() => navigate(-1)}
                 className="btn-ghost"
                 style={{
                   padding: '0.75rem',

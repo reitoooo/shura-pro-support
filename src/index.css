@@ -609,3 +609,5 @@ textarea.input-field {
     grid-column: 1 !important;
   }
 }
+
+.table-row-hover:hover { background: rgba(255, 255, 255, 0.03) !important; }

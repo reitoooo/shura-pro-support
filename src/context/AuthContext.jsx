@@ -62,6 +62,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isAdmin = user && (user.email === SUPERADMIN_EMAIL || userRole === 'admin');
+  const isMentor = user && (isAdmin || userRole === 'mentor');
 
   const loginWithGoogle = async () => {
     try {
@@ -96,6 +97,7 @@ export function AuthProvider({ children }) {
     memberData,
     loading,
     isAdmin,
+    isMentor,
     authError,
     loginWithGoogle,
     logout
