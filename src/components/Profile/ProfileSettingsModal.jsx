@@ -96,8 +96,8 @@ export default function ProfileSettingsModal({ onClose }) {
 
         <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', lineHeight: '1.5' }}>
-            <p>※チームやタグの設定は、現在運営側で行うよう変更されました。</p>
-            <p style={{ marginTop: '0.5rem' }}>その他のプロフィール情報（表示名やアイコンなど）の編集機能は、今後のアップデートで追加予定です。</p>
+            <p>※チームやタグ、表示名（本名）の設定は、現在運営側で一括管理されています。</p>
+            <p style={{ marginTop: '0.5rem' }}>変更が必要な場合は、運営メンバーまでご連絡ください。</p>
           </div>
         </div>
 

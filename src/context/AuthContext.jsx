@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { auth, provider, db } from '../lib/firebase';
 import { signInWithPopup, signOut, onAuthStateChanged, GoogleAuthProvider } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -27,20 +27,19 @@ export function AuthProvider({ children }) {
         try {
           if (currentUser.email === SUPERADMIN_EMAIL) {
             setUserRole('admin');
-            setMemberData({ email: SUPERADMIN_EMAIL, role: 'admin', teams: [], attributes: [], type: 'player' });
+            setMemberData({ email: SUPERADMIN_EMAIL, role: 'admin', teams: [], attributes: [], type: 'player', realName: '管理者' });
             setUser(currentUser);
           } else {
-            const membersRef = collection(db, 'members');
-            const q = query(membersRef, where('email', '==', currentUser.email));
-            const querySnapshot = await getDocs(q);
+            const memberDocRef = doc(db, 'members', currentUser.email);
+            const docSnap = await getDoc(memberDocRef);
             
-            if (querySnapshot.empty) {
+            if (!docSnap.exists()) {
               await signOut(auth);
               setAuthError('このアカウントは事前登録されていません。管理者に連絡してください。');
               setUser(null);
               setMemberData(null);
             } else {
-              const data = querySnapshot.docs[0].data();
+              const data = docSnap.data();
               setUserRole(data.role || 'member');
               setMemberData(data);
               setUser(currentUser);

@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------
+    // Functions
+    // ---------------------------------------------------------
+    
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the user is the Super Admin
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.token.email == 'njaiiwaka@gmail.com';
+    }
+
+    // Check if the user has the 'admin' role in the members collection
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/members/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/members/$(request.auth.token.email)).data.role == 'admin'
+      );
+    }
+
+    // Check if the user is a mentor (or admin)
+    function isMentor() {
+      return isAdmin() || (
+        isAuthenticated() && 
+        exists(/databases/$(database)/documents/members/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/members/$(request.auth.token.email)).data.type == 'mentor'
+      );
+    }
+
+
+    // ---------------------------------------------------------
+    // Rules
+    // ---------------------------------------------------------
+
+    // 1. Members Collection (Invited Users)
+    match /members/{emailId} {
+      // Allow user to read their own member document during login, and admins to read all
+      allow read: if isAuthenticated() && (request.auth.token.email == emailId || isAdmin());
+      
+      // Only admins can add, update, or delete members
+      allow write: if isAdmin();
+    }
+
+    // 2. Users Collection (Player Data: Canvases, Growth Logs, Heat Records, etc.)
+    match /users/{userId} {
+      // Users can read their own data. Mentors and Admins can read everyone's data.
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isMentor());
+      
+      // Users can only write their own data.
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Fallback: Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

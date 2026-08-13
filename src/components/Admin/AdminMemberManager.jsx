@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, query, getDocs, addDoc, deleteDoc, doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, query, getDocs, setDoc, deleteDoc, doc, updateDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-import { Shield, UserPlus, Trash2, Mail, Loader, Upload, Tag, Users, Award } from 'lucide-react';
+import { Shield, UserPlus, Trash2, Mail, Loader, Upload, Tag, Users, Award, User } from 'lucide-react';
 
 export default function AdminMemberManager() {
   const [members, setMembers] = useState([]);
@@ -9,6 +9,7 @@ export default function AdminMemberManager() {
   
   // Form states
   const [newEmail, setNewEmail] = useState('');
+  const [newRealName, setNewRealName] = useState('');
   const [newRole, setNewRole] = useState('member');
   const [newTeams, setNewTeams] = useState('');
   const [newAttributes, setNewAttributes] = useState('');
@@ -51,8 +52,9 @@ export default function AdminMemberManager() {
         return;
       }
 
-      await addDoc(collection(db, 'members'), {
+      await setDoc(doc(db, 'members', newEmail.trim()), {
         email: newEmail.trim(),
+        realName: newRealName.trim(),
         role: newRole,
         teams: newTeams ? newTeams.split('/').map(t => t.trim()).filter(Boolean) : [],
         attributes: newAttributes ? newAttributes.split('/').map(a => a.trim()).filter(Boolean) : [],
@@ -62,6 +64,7 @@ export default function AdminMemberManager() {
 
       setMessage(`${newEmail} を追加しました！`);
       setNewEmail('');
+      setNewRealName('');
       setNewTeams('');
       setNewAttributes('');
       setNewRole('member');
@@ -95,6 +98,7 @@ export default function AdminMemberManager() {
         // Basic CSV parsing
         const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
         const emailIdx = headers.indexOf('email');
+        const realNameIdx = headers.findIndex(h => h === 'name' || h === 'realname' || h === '表示名' || h === '本名' || h === '氏名');
         const roleIdx = headers.indexOf('role');
         const teamsIdx = headers.indexOf('teams');
         const attributesIdx = headers.indexOf('attributes');
@@ -121,12 +125,14 @@ export default function AdminMemberManager() {
 
           const role = (roleIdx !== -1 && cols[roleIdx]) ? cols[roleIdx] : 'member';
           const type = (typeIdx !== -1 && cols[typeIdx]) ? cols[typeIdx] : 'player';
+          const realName = (realNameIdx !== -1 && cols[realNameIdx]) ? cols[realNameIdx] : '';
           const teamsStr = (teamsIdx !== -1 && cols[teamsIdx]) ? cols[teamsIdx] : '';
           const attrsStr = (attributesIdx !== -1 && cols[attributesIdx]) ? cols[attributesIdx] : '';
 
-          const newDocRef = doc(collection(db, 'members'));
+          const newDocRef = doc(db, 'members', email);
           batch.set(newDocRef, {
             email,
+            realName,
             role,
             type,
             teams: teamsStr ? teamsStr.split('/').map(t => t.trim()).filter(Boolean) : [],
@@ -209,6 +215,11 @@ export default function AdminMemberManager() {
           <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Mail size={12}/> メールアドレス</label>
           <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required placeholder="招待するGoogleアカウント" className="base-input" />
         </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><User size={12}/> 氏名（表示名）</label>
+          <input type="text" value={newRealName} onChange={(e) => setNewRealName(e.target.value)} placeholder="修羅 太郎" className="base-input" />
+        </div>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           <label style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Users size={12}/> チーム (複数可・/区切り)</label>
@@ -256,6 +267,7 @@ export default function AdminMemberManager() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
             <thead>
               <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'left' }}>
+                <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-glass-border)' }}>氏名</th>
                 <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-glass-border)' }}>メールアドレス</th>
                 <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-glass-border)' }}>所属/属性</th>
                 <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-glass-border)' }}>タイプ/権限</th>
@@ -268,7 +280,8 @@ export default function AdminMemberManager() {
               ) : (
                 members.map(member => (
                   <tr key={member.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-primary)' }}>{member.email}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-primary)' }}>{member.realName || '-'}</td>
+                    <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-secondary)' }}>{member.email}</td>
                     <td style={{ padding: '0.75rem 1rem', color: 'var(--color-text-secondary)' }}>
                       <div>{member.teams?.join(', ') || '-'}</div>
                       <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>{member.attributes?.join(', ') || '-'}</div>

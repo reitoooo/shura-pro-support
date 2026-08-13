@@ -5,7 +5,8 @@ import ShuraCanvasPanel from '../ShuraCanvas/ShuraCanvasPanel';
 import GrowthLogPanel from '../GrowthLog/GrowthLogPanel';
 import CommunityPanel from '../Community/CommunityPanel';
 import CalendarTimeline from '../Integration/CalendarTimeline';
-import { MessageSquare, Users, Calendar, Kanban } from 'lucide-react';
+import MeetingNotesPanel from '../Meeting/MeetingNotesPanel';
+import { MessageSquare, Users, Calendar, Kanban, FileText } from 'lucide-react';
 
 export default function PlayerLayout() {
   const [activeTab, setActiveTab] = useState(() => {
@@ -67,6 +68,7 @@ export default function PlayerLayout() {
             {[
               { key: 'canvas', label: '修羅キャンバス', icon: <Kanban size={14} /> },
               { key: 'growth', label: '成長ログ', icon: <MessageSquare size={14} /> },
+              { key: 'meeting', label: '面談記録', icon: <FileText size={14} /> },
               { key: 'community', label: 'コミュニティ', icon: <Users size={14} /> },
               { key: 'calendar', label: 'カレンダー', icon: <Calendar size={14} /> },
             ].map((tab) => (
@@ -101,6 +103,7 @@ export default function PlayerLayout() {
           <div style={{ flex: 1, minHeight: 0 }}>
             {activeTab === 'canvas' && <ShuraCanvasPanel />}
             {activeTab === 'growth' && <GrowthLogPanel />}
+            {activeTab === 'meeting' && <MeetingNotesPanel />}
             {activeTab === 'community' && <CommunityPanel />}
             {activeTab === 'calendar' && <CalendarTimeline />}
           </div>

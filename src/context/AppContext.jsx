@@ -47,6 +47,9 @@ const initialState = {
   // Inbox Memos (Flash freezing of emotions)
   inboxMemos: [],
 
+  // Meeting Notes (1on1 / Feedback raw minutes & summaries)
+  meetingNotes: [],
+
   // Toast notifications
   toasts: [],
 
@@ -440,6 +443,35 @@ function appReducer(state, action) {
       return {
         ...state,
         inboxMemos: (state.inboxMemos || []).filter((m) => m.id !== action.payload),
+      };
+
+    // ===== Meeting Notes =====
+    case 'ADD_MEETING_NOTE': {
+      const newNote = {
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString(),
+        ...action.payload,
+      };
+      return {
+        ...state,
+        meetingNotes: [newNote, ...(state.meetingNotes || [])],
+      };
+    }
+
+    case 'UPDATE_MEETING_NOTE': {
+      const { id, ...updates } = action.payload;
+      return {
+        ...state,
+        meetingNotes: (state.meetingNotes || []).map((n) =>
+          n.id === id ? { ...n, ...updates } : n
+        ),
+      };
+    }
+
+    case 'DELETE_MEETING_NOTE':
+      return {
+        ...state,
+        meetingNotes: (state.meetingNotes || []).filter((n) => n.id !== action.payload),
       };
 
     // ===== Calendar Events =====

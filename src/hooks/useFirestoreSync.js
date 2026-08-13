@@ -78,7 +78,7 @@ export function useFirestoreSync() {
           ...persistableState,
           profile: {
             ...persistableState.profile,
-            displayName: user.displayName,
+            displayName: memberData?.realName || user.displayName,
             email: user.email,
             photoURL: user.photoURL,
           },
@@ -98,7 +98,7 @@ export function useFirestoreSync() {
     }, 1000);
 
     return () => clearTimeout(timeoutId);
-  }, [state, user, isInitialized, dispatch]);
+  }, [state, user, isInitialized, dispatch, memberData]);
 
   return { syncStatus, isInitialized };
 }
